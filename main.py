@@ -1,1 +1,4 @@
-print("Hello World")
+from GameBoard import GameBoard
+
+
+x = GameBoard()
