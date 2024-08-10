@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from stones import OccupyStatus
 
-
 DIRECTIONS = [[1, 0], [0, 1], [-1, 0], [0, -1]]
 
 
@@ -28,17 +27,69 @@ class Stack:
 class CoreLogic:
     def __init__(self):
         self.board_info = [[OccupyStatus.Free for _ in range(19)] for __ in range(19)]
-        self.liberty_info: list[list[int]] = [[4 for _ in range(19)] for __ in range(19)]
+        self.liberty_info: list[list[int]] = [[0 for _ in range(19)] for __ in range(19)]
         self.count: int = 0
         self.finish: bool = False
         self.last_move_is_passed: bool = False
         self.black_turn: bool = True
+        self.take_happened: bool = False
+
+    def test_logic(self, moves: list[list[int]]):
+        for i in range(len(moves)):
+            self.set_stone(moves[i][0], moves[i][1])
+            self.board_render()
 
     def check_liberty(self, x: int, y: int):
-        if self.board_info[x][y] == OccupyStatus.Free:
-            self.liberty_info[x][y] = 0
-            return
-        stone_type = self.board_info[x][y]
+        self.check_hostile_liberty(x, y)
+        self.check_friendly_liberty(x, y)
+        # if self.take_happened:
+        #     self.take_happened = False
+        #     self.check_hostile_liberty(x, y)
+        for j in range(19):
+            for i in range(19):
+                print(self.liberty_info[i][j], end="  ")
+            print("  ")
+        print("  ")
+
+    def is_occupied_by_stone(self, x: int, y: int) -> bool:
+        test1 = self.board_info[x][y] == OccupyStatus.White
+        test2 = self.board_info[x][y] == OccupyStatus.Black
+        return test1 or test2
+
+    def is_connected(self, x1: int, y1: int, x2: int, y2:int) -> bool:
+        if x1 == x2 and y1 == y2:
+            return True
+        if not self.is_occupied_by_stone(x1, y1):
+            return False
+        if not self.is_occupied_by_stone(x2, y2):
+            return False
+        if self.board_info[x1][y1] != self.board_info[x2][y2]:
+            return False
+        stack = Stack()
+        stack.push((x1, y1))
+        liberty_count: list[list[bool]] = [[True for _ in range(19)] for __ in range(19)]
+        liberty_count[x1][y1] = False
+        local_status = self.board_info[x1][y1]
+        while not stack.empty():
+            x_cri, y_cri = stack.top()
+            stack.pop()
+            for i in range(4):
+                x_temp = x_cri + DIRECTIONS[i][0]
+                y_temp = y_cri + DIRECTIONS[i][1]
+                if x_temp < 0 or x_temp >= 19 or y_temp < 0 or y_temp >= 19:
+                    continue
+                if self.board_info[x_temp][y_temp] == local_status:
+                    if x_temp == x2 and y_temp == y2:
+                        return True
+                    if liberty_count[x_temp][y_temp]:
+                        stack.push((x_temp, y_temp))
+                        liberty_count[x_temp][y_temp] = False
+        return False
+
+    def get_local_liberty(self, x: int, y: int) -> int:
+        if not self.is_occupied_by_stone(x, y):
+            return 0
+        local_status = self.board_info[x][y]
         stack = Stack()
         stack.push((x, y))
         local_liberty: int = 0
@@ -52,7 +103,7 @@ class CoreLogic:
                 y_temp = y_cri + DIRECTIONS[i][1]
                 if x_temp < 0 or x_temp >= 19 or y_temp < 0 or y_temp >= 19:
                     continue
-                if self.board_info[x_temp][y_temp] == stone_type:
+                if self.board_info[x_temp][y_temp] == local_status:
                     if liberty_count[x_temp][y_temp]:
                         stack.push((x_temp, y_temp))
                         liberty_count[x_temp][y_temp] = False
@@ -60,51 +111,74 @@ class CoreLogic:
                     if liberty_count[x_temp][y_temp]:
                         local_liberty += 1
                         liberty_count[x_temp][y_temp] = False
-        liberty_count.clear()
-        liberty_count = [[True for _ in range(19)] for __ in range(19)]
-        liberty_count[x][y] = False
+        return local_liberty
+
+    def set_local_liberty(self, x: int, y: int, local_liberty: int):
+        if not self.is_occupied_by_stone(x, y):
+            return
+        local_status = self.board_info[x][y]
+        stack = Stack()
         stack.push((x, y))
-        if local_liberty == 0:
-            while not stack.empty():
-                x_cri, y_cri = stack.top()
-                stack.pop()
+        liberty_count: list[list[bool]] = [[True for _ in range(19)] for __ in range(19)]
+        liberty_count[x][y] = False
+        while not stack.empty():
+            x_cri, y_cri = stack.top()
+            stack.pop()
+            self.liberty_info[x_cri][y_cri] = local_liberty
+            if local_liberty == 0:
                 self.board_info[x_cri][y_cri] = OccupyStatus.Free
-                self.liberty_info[x_cri][y_cri] = 0
-                for i in range(4):
-                    x_temp = x_cri + DIRECTIONS[i][0]
-                    y_temp = y_cri + DIRECTIONS[i][1]
-                    if x_temp < 0 or x_temp >= 19 or y_temp < 0 or y_temp >= 19:
-                        continue
-                    if self.board_info[x_temp][y_temp] == stone_type:
-                        if liberty_count[x_temp][y_temp]:
-                            stack.push((x_temp, y_temp))
-                            liberty_count[x_temp][y_temp] = False
-        else:
-            while not stack.empty():
-                x_cri, y_cri = stack.top()
-                stack.pop()
-                self.liberty_info[x_cri][y_cri] = local_liberty
-                for i in range(4):
-                    x_temp = x_cri + DIRECTIONS[i][0]
-                    y_temp = y_cri + DIRECTIONS[i][1]
-                    if x_temp < 0 or x_temp >= 19 or y_temp < 0 or y_temp >= 19:
-                        continue
-                    if self.board_info[x_temp][y_temp] == stone_type:
-                        if liberty_count[x_temp][y_temp]:
-                            stack.push((x_temp, y_temp))
-                            liberty_count[x_temp][y_temp] = False
+            for i in range(4):
+                x_temp = x_cri + DIRECTIONS[i][0]
+                y_temp = y_cri + DIRECTIONS[i][1]
+                if x_temp < 0 or x_temp >= 19 or y_temp < 0 or y_temp >= 19:
+                    continue
+                if self.board_info[x_temp][y_temp] == local_status:
+                    if liberty_count[x_temp][y_temp]:
+                        stack.push((x_temp, y_temp))
+                        liberty_count[x_temp][y_temp] = False
+
+    def check_hostile_liberty(self, x: int, y: int):
+        hostile_status = OccupyStatus.White
+        if self.board_info[x][y] == OccupyStatus.White:
+            hostile_status = OccupyStatus.Black
+        hostile_list = []
+        for i in range(4):
+            x_temp = x + DIRECTIONS[i][0]
+            y_temp = y + DIRECTIONS[i][1]
+            if x_temp < 0 or x_temp >= 19 or y_temp < 0 or y_temp >= 19:
+                continue
+            if self.board_info[x_temp][y_temp] == hostile_status:
+                if len(hostile_list) == 0:
+                    hostile_list.append((x_temp, y_temp))
+                else:
+                    flag: bool = True
+                    for j in range(len(hostile_list)):
+                        x_hos, y_hos = hostile_list[i]
+                        if self.is_connected(x_temp, y_temp, x_hos, y_hos):
+                            flag = False
+                            break
+                        if flag:
+                            hostile_list.append((x_temp, y_temp))
+        for i in range(len(hostile_list)):
+            x_hos, y_hos = hostile_list[i]
+            local_liberty = self.get_local_liberty(x_hos, y_hos)
+            self.set_local_liberty(x_hos, y_hos, local_liberty)
+
+    def check_friendly_liberty(self, x: int, y: int):
+        local_liberty = self.get_local_liberty(x, y)
+        self.set_local_liberty(x, y, local_liberty)
 
     def set_black_stone(self, x: int, y: int):
         if self.board_info[x][y] == OccupyStatus.Free:
             self.board_info[x][y] = OccupyStatus.Black
+            self.black_turn = False
             self.check_liberty(x, y)
-            self.black_turn = False;
 
     def set_white_stone(self, x: int, y: int):
         if self.board_info[x][y] == OccupyStatus.Free:
             self.board_info[x][y] = OccupyStatus.White
-            self.check_liberty(x, y)
             self.black_turn = True
+            self.check_liberty(x, y)
 
     def set_stone(self, x: int, y: int):
         if self.black_turn:
@@ -150,4 +224,3 @@ class CoreLogic:
         plt.ylim((-0.5, 18.5))
         plt.axis('off')
         plt.show()
-
