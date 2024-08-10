@@ -2,6 +2,9 @@ import pygame
 import ctypes
 import colors
 import sys
+import time
+from core_logic import CoreLogic
+from stones import OccupyStatus
 
 
 user32 = ctypes.windll.user32
@@ -33,27 +36,32 @@ STONE_INNER_RADIUS: int = int(STONE_OUTER_RADIUS * 0.8)
 class GameBoard:
     def __init__(self):
         pygame.init()
+        self.logic = CoreLogic()
         self.screen = pygame.display.set_mode((BOARD_WIDTH, BOARD_HEIGHT))
-        while True:
+
+    def logic_test(self, moves: list):
+        time.sleep(7.0)
+        for i in range(len(moves)):
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
+            x, y = moves[i]
+            self.logic.set_stone(x, y)
             self.screen.fill(colors.GREY)
             # self.screen_block_check()
             self.draw_board()
-            for i in range(10):
-                for j in range(10):
-                    if (i + j) % 2 == 0:
-                        self.set_black_stone(i, j)
-                    else:
-                        self.set_white_stone(i, j)
-            for i in range(11, 19):
-                for j in range(11, 19):
-                    if i % 2 == 0:
-                        self.set_black_stone(i, j)
-                    else:
-                        self.set_white_stone(i, j)
+            for j in range(19):
+                for k in range(19):
+                    if self.logic.board_info[j][k] == OccupyStatus.Black:
+                        self.set_black_stone(j, k)
+                    if self.logic.board_info[j][k] == OccupyStatus.White:
+                        self.set_white_stone(j, k)
+            pygame.draw.circle(self.screen, colors.RED,
+                               ((x + 1) * UNIT + MID_UNIT + 1,
+                                (y + 1) * UNIT + MID_UNIT + 1),
+                               STONE_INNER_RADIUS // 2)
             pygame.display.flip()
+            time.sleep(0.5)
 
     def screen_block_check(self):
         for i in range(BOARD_WIDTH_UNIT_NUM):

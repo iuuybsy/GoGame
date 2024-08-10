@@ -1,10 +1,13 @@
-# from game_board import GameBoard
-from core_logic import CoreLogic
+from game_board import GameBoard
+# from core_logic import CoreLogic
+import sgf_file_load
 
 
-# x = GameBoard()
+x = GameBoard()
 
-logic = CoreLogic()
+# logic = CoreLogic()
 
-moves = [[1, 0], [0, 0], [0, 1], [1, 1]]
-logic.test_logic(moves)
+moves = sgf_file_load.load_sgf_file("test_sgf1.sgf")
+# logic.test_logic(moves)
+x.logic_test(moves)
+

@@ -34,10 +34,11 @@ class CoreLogic:
         self.black_turn: bool = True
         self.take_happened: bool = False
 
-    def test_logic(self, moves: list[list[int]]):
+    def test_logic(self, moves: list):
         for i in range(len(moves)):
-            self.set_stone(moves[i][0], moves[i][1])
-            self.board_render()
+            x, y = moves[i]
+            self.set_stone(x, y)
+            self.board_render(x, y)
 
     def check_liberty(self, x: int, y: int):
         self.check_hostile_liberty(x, y)
@@ -45,18 +46,18 @@ class CoreLogic:
         # if self.take_happened:
         #     self.take_happened = False
         #     self.check_hostile_liberty(x, y)
-        for j in range(19):
-            for i in range(19):
-                print(self.liberty_info[i][j], end="  ")
-            print("  ")
-        print("  ")
+        # for j in range(19):
+        #     for i in range(19):
+        #         print(self.liberty_info[i][j], end="  ")
+        #     print("  ")
+        # print("  ")
 
     def is_occupied_by_stone(self, x: int, y: int) -> bool:
         test1 = self.board_info[x][y] == OccupyStatus.White
         test2 = self.board_info[x][y] == OccupyStatus.Black
         return test1 or test2
 
-    def is_connected(self, x1: int, y1: int, x2: int, y2:int) -> bool:
+    def is_connected(self, x1: int, y1: int, x2: int, y2: int) -> bool:
         if x1 == x2 and y1 == y2:
             return True
         if not self.is_occupied_by_stone(x1, y1):
@@ -153,7 +154,7 @@ class CoreLogic:
                 else:
                     flag: bool = True
                     for j in range(len(hostile_list)):
-                        x_hos, y_hos = hostile_list[i]
+                        x_hos, y_hos = hostile_list[j]
                         if self.is_connected(x_temp, y_temp, x_hos, y_hos):
                             flag = False
                             break
@@ -193,8 +194,8 @@ class CoreLogic:
         self.last_move_is_passed = True
         self.black_turn = not self.black_turn
 
-    def board_render(self):
-        fig, ax = plt.subplots(figsize=(8, 8))
+    def board_render(self, x=19, y=19):
+        fig, ax = plt.subplots(figsize=(6, 6))
         plt.subplots_adjust(left=0.0, right=1.0, bottom=0.0, top=1.0)
 
         for i in range(19):
@@ -218,9 +219,17 @@ class CoreLogic:
                     plt.gca().add_patch(c1)
                     c2 = Circle(xy=(i, 18 - j), radius=0.35, color='white', zorder=2)
                     plt.gca().add_patch(c2)
+        if x < 19 and y < 19:
+            if self.board_info[x][y] == OccupyStatus.White:
+                c = Circle(xy=(x, 18 - y), radius=0.2, color='red', zorder=3)
+                plt.gca().add_patch(c)
+            if self.board_info[x][y] == OccupyStatus.Black:
+                c = Circle(xy=(x, 18 - y), radius=0.2, color='red', zorder=3)
+                plt.gca().add_patch(c)
 
         ax.set_aspect(1)
         plt.xlim((-0.5, 18.5))
         plt.ylim((-0.5, 18.5))
         plt.axis('off')
         plt.show()
+
