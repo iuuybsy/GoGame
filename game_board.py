@@ -6,7 +6,6 @@ import time
 from core_logic import CoreLogic
 from stones import OccupyStatus
 
-
 user32 = ctypes.windll.user32
 SCREEN_WIDTH: int = user32.GetSystemMetrics(0)
 SCREEN_HEIGHT: int = user32.GetSystemMetrics(1)
@@ -15,6 +14,11 @@ UNIT: int = (SCREEN_HEIGHT // 10 * 9) // 21
 if UNIT % 2 == 0:
     UNIT += 1
 MID_UNIT = UNIT // 2 + 1
+
+SQUARE_WIDTH = int(UNIT * 0.4)
+if SQUARE_WIDTH % 2 == 0:
+    SQUARE_WIDTH += 1
+SQUARE_INDEX = int((UNIT - SQUARE_WIDTH) * 0.5) + 1
 
 BOARD_HEIGHT_UNIT_NUM: int = 21
 BOARD_WIDTH_UNIT_NUM: int = 27
@@ -39,8 +43,40 @@ class GameBoard:
         self.logic = CoreLogic()
         self.screen = pygame.display.set_mode((BOARD_WIDTH, BOARD_HEIGHT))
 
+    def self_play(self):
+        last_stone = [-1, -1]
+        while True:
+            self.screen.fill(colors.GREY)
+            self.draw_board()
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
+            # self.screen_block_check()
+            x, y = pygame.mouse.get_pos()
+            x_num = x // UNIT - 1
+            y_num = y // UNIT - 1
+            if 0 <= x_num <= 18 and 0 <= y_num <= 18:
+                if not self.logic.is_occupied_by_stone(x_num, y_num):
+                    if self.logic.black_turn:
+                        self.set_black_square(x_num, y_num)
+                    else:
+                        self.set_white_square(x_num, y_num)
+                left, _, __ = pygame.mouse.get_pressed()
+                if left:
+                    self.logic.set_stone(x_num, y_num)
+                    last_stone[0] = x_num
+                    last_stone[1] = y_num
+            for j in range(19):
+                for k in range(19):
+                    if self.logic.board_info[j][k] == OccupyStatus.Black:
+                        self.set_black_stone(j, k)
+                    if self.logic.board_info[j][k] == OccupyStatus.White:
+                        self.set_white_stone(j, k)
+            if last_stone[0] >= 0 and last_stone[1] >= 0:
+                self.set_red_dot(last_stone[0], last_stone[1])
+            pygame.display.flip()
+
     def logic_test(self, moves: list):
-        time.sleep(7.0)
         for i in range(len(moves)):
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -56,10 +92,7 @@ class GameBoard:
                         self.set_black_stone(j, k)
                     if self.logic.board_info[j][k] == OccupyStatus.White:
                         self.set_white_stone(j, k)
-            pygame.draw.circle(self.screen, colors.RED,
-                               ((x + 1) * UNIT + MID_UNIT + 1,
-                                (y + 1) * UNIT + MID_UNIT + 1),
-                               STONE_INNER_RADIUS // 2)
+            self.set_red_dot(x, y)
             pygame.display.flip()
             time.sleep(0.5)
 
@@ -103,9 +136,18 @@ class GameBoard:
                             (y + 1) * UNIT + MID_UNIT + 1),
                            STONE_INNER_RADIUS)
 
+    def set_black_square(self, x: int, y: int):
+        rect = ((x + 1) * UNIT + SQUARE_INDEX, (y + 1) * UNIT + SQUARE_INDEX,
+                SQUARE_WIDTH, SQUARE_WIDTH)
+        pygame.draw.rect(self.screen, colors.BLACK, rect)
 
+    def set_white_square(self, x: int, y: int):
+        rect = ((x + 1) * UNIT + SQUARE_INDEX, (y + 1) * UNIT + SQUARE_INDEX,
+                SQUARE_WIDTH, SQUARE_WIDTH)
+        pygame.draw.rect(self.screen, colors.WHITE, rect)
 
-
-
-
-
+    def set_red_dot(self, x: int, y: int):
+        pygame.draw.circle(self.screen, colors.RED,
+                           ((x + 1) * UNIT + MID_UNIT + 1,
+                            (y + 1) * UNIT + MID_UNIT + 1),
+                           STONE_INNER_RADIUS // 2)

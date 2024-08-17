@@ -40,7 +40,6 @@ class GameBoard:
         self.screen = pygame.display.set_mode((BOARD_WIDTH, BOARD_HEIGHT))
 
     def logic_test(self, moves: list):
-        time.sleep(7.0)
         for i in range(len(moves)):
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
