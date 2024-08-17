@@ -76,7 +76,22 @@ class GameBoard:
                 self.set_red_dot(last_stone[0], last_stone[1])
             pygame.display.flip()
 
-    def logic_test(self, moves: list):
+    def logic_test(self, adv_black: list, adv_white: list, moves: list, black_first: bool):
+        print(len(adv_black), len(adv_white))
+        if len(adv_black) > 0:
+            for i in range(len(adv_black)):
+                x, y = adv_black[i]
+                if not self.logic.black_turn:
+                    self.logic.pass_this_move()
+                self.logic.set_stone(x, y)
+        if len(adv_white) > 0:
+            for i in range(len(adv_white)):
+                x, y = adv_white[i]
+                if self.logic.black_turn:
+                    self.logic.pass_this_move()
+                self.logic.set_stone(x, y)
+        if not black_first:
+            self.logic.pass_this_move()
         for i in range(len(moves)):
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -94,7 +109,7 @@ class GameBoard:
                         self.set_white_stone(j, k)
             self.set_red_dot(x, y)
             pygame.display.flip()
-            time.sleep(0.5)
+            time.sleep(1.0)
 
     def screen_block_check(self):
         for i in range(BOARD_WIDTH_UNIT_NUM):

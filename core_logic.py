@@ -188,9 +188,9 @@ class CoreLogic:
             self.set_white_stone(x, y)
 
     def pass_this_move(self):
-        if self.last_move_is_passed:
-            self.finish = True
-            return
+        # if self.last_move_is_passed:
+        #     self.finish = True
+        #     return
         self.last_move_is_passed = True
         self.black_turn = not self.black_turn
 
