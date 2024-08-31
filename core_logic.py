@@ -1,3 +1,4 @@
+import copy
 import matplotlib.pyplot as plt
 from matplotlib.patches import Circle
 from stones import OccupyStatus
@@ -33,12 +34,25 @@ class CoreLogic:
         self.last_move_is_passed: bool = False
         self.black_turn: bool = True
         self.take_happened: bool = False
+        self.situation = []
 
     def test_logic(self, moves: list):
         for i in range(len(moves)):
             x, y = moves[i]
             self.set_stone(x, y)
             self.board_render(x, y)
+
+    def clear_board(self):
+        self.board_info.clear()
+        self.board_info = [[OccupyStatus.Free for _ in range(19)] for __ in range(19)]
+        self.liberty_info.clear()
+        self.liberty_info: list[list[int]] = [[0 for _ in range(19)] for __ in range(19)]
+        self.count: int = 0
+        self.finish: bool = False
+        self.last_move_is_passed: bool = False
+        self.black_turn: bool = True
+        self.take_happened: bool = False
+        self.situation.clear()
 
     def check_liberty(self, x: int, y: int):
         self.check_hostile_liberty(x, y)
@@ -152,13 +166,9 @@ class CoreLogic:
                 if len(hostile_list) == 0:
                     hostile_list.append((x_temp, y_temp))
                 else:
-                    flag: bool = True
                     for j in range(len(hostile_list)):
                         x_hos, y_hos = hostile_list[j]
-                        if self.is_connected(x_temp, y_temp, x_hos, y_hos):
-                            flag = False
-                            break
-                        if flag:
+                        if not self.is_connected(x_temp, y_temp, x_hos, y_hos):
                             hostile_list.append((x_temp, y_temp))
         for i in range(len(hostile_list)):
             x_hos, y_hos = hostile_list[i]
@@ -186,6 +196,9 @@ class CoreLogic:
             self.set_black_stone(x, y)
         else:
             self.set_white_stone(x, y)
+        board_info = copy.deepcopy(self.board_info)
+        liberty_info = copy.deepcopy(self.liberty_info)
+        self.situation.append((board_info, liberty_info))
 
     def pass_this_move(self):
         # if self.last_move_is_passed:
@@ -194,7 +207,19 @@ class CoreLogic:
         self.last_move_is_passed = True
         self.black_turn = not self.black_turn
 
-    def board_render(self, x=19, y=19):
+    def regret(self):
+        if len(self.situation) > 1:
+            self.board_info.clear()
+            self.liberty_info.clear()
+            self.situation.pop()
+            self.board_info, self.liberty_info = self.situation[-1]
+            self.black_turn = not self.black_turn
+
+        elif len(self.situation) == 1:
+            self.clear_board()
+
+    @classmethod
+    def board_render(cls, board_info, x=19, y=19):
         fig, ax = plt.subplots(figsize=(6, 6))
         plt.subplots_adjust(left=0.0, right=1.0, bottom=0.0, top=1.0)
 
@@ -209,21 +234,21 @@ class CoreLogic:
 
         for i in range(19):
             for j in range(19):
-                if self.board_info[i][j] == OccupyStatus.Free:
+                if board_info[i][j] == OccupyStatus.Free:
                     continue
-                elif self.board_info[i][j] == OccupyStatus.Black:
+                elif board_info[i][j] == OccupyStatus.Black:
                     c = Circle(xy=(i, 18 - j), radius=0.45, color='black', zorder=2)
                     plt.gca().add_patch(c)
-                elif self.board_info[i][j] == OccupyStatus.White:
+                elif board_info[i][j] == OccupyStatus.White:
                     c1 = Circle(xy=(i, 18 - j), radius=0.45, color='black', zorder=2)
                     plt.gca().add_patch(c1)
                     c2 = Circle(xy=(i, 18 - j), radius=0.35, color='white', zorder=2)
                     plt.gca().add_patch(c2)
         if x < 19 and y < 19:
-            if self.board_info[x][y] == OccupyStatus.White:
+            if board_info[x][y] == OccupyStatus.White:
                 c = Circle(xy=(x, 18 - y), radius=0.2, color='red', zorder=3)
                 plt.gca().add_patch(c)
-            if self.board_info[x][y] == OccupyStatus.Black:
+            if board_info[x][y] == OccupyStatus.Black:
                 c = Circle(xy=(x, 18 - y), radius=0.2, color='red', zorder=3)
                 plt.gca().add_patch(c)
 
