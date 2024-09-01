@@ -35,6 +35,7 @@ class CoreLogic:
         self.black_turn: bool = True
         self.take_happened: bool = False
         self.situation = []
+        self.ko = [-1, -1]
 
     def test_logic(self, moves: list):
         for i in range(len(moves)):
@@ -136,12 +137,14 @@ class CoreLogic:
         stack.push((x, y))
         liberty_count: list[list[bool]] = [[True for _ in range(19)] for __ in range(19)]
         liberty_count[x][y] = False
+        count: int = 0
         while not stack.empty():
             x_cri, y_cri = stack.top()
             stack.pop()
             self.liberty_info[x_cri][y_cri] = local_liberty
             if local_liberty == 0:
                 self.board_info[x_cri][y_cri] = OccupyStatus.Free
+                count += 1
             for i in range(4):
                 x_temp = x_cri + DIRECTIONS[i][0]
                 y_temp = y_cri + DIRECTIONS[i][1]
@@ -151,6 +154,8 @@ class CoreLogic:
                     if liberty_count[x_temp][y_temp]:
                         stack.push((x_temp, y_temp))
                         liberty_count[x_temp][y_temp] = False
+        if count == 1:
+            self.ko[0], self.ko[1] = x, y
 
     def check_hostile_liberty(self, x: int, y: int):
         hostile_status = OccupyStatus.White
@@ -192,13 +197,15 @@ class CoreLogic:
             self.check_liberty(x, y)
 
     def set_stone(self, x: int, y: int):
-        if self.black_turn:
-            self.set_black_stone(x, y)
-        else:
-            self.set_white_stone(x, y)
-        board_info = copy.deepcopy(self.board_info)
-        liberty_info = copy.deepcopy(self.liberty_info)
-        self.situation.append((board_info, liberty_info))
+        if x != self.ko[0] or y != self.ko[1]:
+            self.ko[0], self.ko[1] = -1, -1
+            if self.black_turn:
+                self.set_black_stone(x, y)
+            else:
+                self.set_white_stone(x, y)
+            board_info = copy.deepcopy(self.board_info)
+            liberty_info = copy.deepcopy(self.liberty_info)
+            self.situation.append((board_info, liberty_info))
 
     def pass_this_move(self):
         # if self.last_move_is_passed:
