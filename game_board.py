@@ -11,9 +11,7 @@ user32 = ctypes.windll.user32
 SCREEN_WIDTH: int = user32.GetSystemMetrics(0)
 SCREEN_HEIGHT: int = user32.GetSystemMetrics(1)
 
-UNIT: int = (SCREEN_HEIGHT // 10 * 9) // 21
-if UNIT % 2 == 0:
-    UNIT += 1
+UNIT: int = 41
 MID_UNIT = UNIT // 2 + 1
 
 SQUARE_WIDTH = int(UNIT * 0.4)
@@ -22,7 +20,7 @@ if SQUARE_WIDTH % 2 == 0:
 SQUARE_INDEX = int((UNIT - SQUARE_WIDTH) * 0.5) + 1
 
 BOARD_HEIGHT_UNIT_NUM: int = 21
-BOARD_WIDTH_UNIT_NUM: int = 27
+BOARD_WIDTH_UNIT_NUM: int = 21
 
 BOARD_WIDTH: int = BOARD_WIDTH_UNIT_NUM * UNIT
 BOARD_HEIGHT: int = BOARD_HEIGHT_UNIT_NUM * UNIT
