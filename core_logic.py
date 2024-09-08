@@ -29,13 +29,11 @@ class CoreLogic:
     def __init__(self):
         self.board_info = [[OccupyStatus.Free for _ in range(19)] for __ in range(19)]
         self.liberty_info: list[list[int]] = [[0 for _ in range(19)] for __ in range(19)]
-        self.count: int = 0
-        self.finish: bool = False
-        self.last_move_is_passed: bool = False
         self.black_turn: bool = True
-        self.take_happened: bool = False
+        self.valid: bool = True
         self.situation = []
         self.ko = [-1, -1]
+        self.last_move = [-1, -1]
 
     def test_logic(self, moves: list):
         for i in range(len(moves)):
@@ -48,24 +46,15 @@ class CoreLogic:
         self.board_info = [[OccupyStatus.Free for _ in range(19)] for __ in range(19)]
         self.liberty_info.clear()
         self.liberty_info: list[list[int]] = [[0 for _ in range(19)] for __ in range(19)]
-        self.count: int = 0
-        self.finish: bool = False
-        self.last_move_is_passed: bool = False
         self.black_turn: bool = True
-        self.take_happened: bool = False
+        self.valid: bool = True
         self.situation.clear()
+        self.ko = [-1, -1]
+        self.last_move = [-1, -1]
 
     def check_liberty(self, x: int, y: int):
         self.check_hostile_liberty(x, y)
         self.check_friendly_liberty(x, y)
-        # if self.take_happened:
-        #     self.take_happened = False
-        #     self.check_hostile_liberty(x, y)
-        # for j in range(19):
-        #     for i in range(19):
-        #         print(self.liberty_info[i][j], end="  ")
-        #     print("  ")
-        # print("  ")
 
     def is_occupied_by_stone(self, x: int, y: int) -> bool:
         test1 = self.board_info[x][y] == OccupyStatus.White
@@ -184,6 +173,42 @@ class CoreLogic:
         local_liberty = self.get_local_liberty(x, y)
         self.set_local_liberty(x, y, local_liberty)
 
+    def check_valid(self, x: int, y: int):
+        if self.black_turn:
+            self.board_info[x][y] = OccupyStatus.Black
+        else:
+            self.board_info[x][y] = OccupyStatus.White
+        local_liberty = self.get_local_liberty(x, y)
+        if local_liberty > 0:
+            self.board_info[x][y] = OccupyStatus.Free
+            return True
+
+        hostile_status = OccupyStatus.White
+        if self.board_info[x][y] == OccupyStatus.White:
+            hostile_status = OccupyStatus.Black
+        hostile_list = []
+        for i in range(4):
+            x_temp = x + DIRECTIONS[i][0]
+            y_temp = y + DIRECTIONS[i][1]
+            if x_temp < 0 or x_temp >= 19 or y_temp < 0 or y_temp >= 19:
+                continue
+            if self.board_info[x_temp][y_temp] == hostile_status:
+                if len(hostile_list) == 0:
+                    hostile_list.append((x_temp, y_temp))
+                else:
+                    for j in range(len(hostile_list)):
+                        x_hos, y_hos = hostile_list[j]
+                        if not self.is_connected(x_temp, y_temp, x_hos, y_hos):
+                            hostile_list.append((x_temp, y_temp))
+        for i in range(len(hostile_list)):
+            x_hos, y_hos = hostile_list[i]
+            local_liberty = self.get_local_liberty(x_hos, y_hos)
+            if local_liberty == 0:
+                self.board_info[x][y] = OccupyStatus.Free
+                return True
+        self.board_info[x][y] = OccupyStatus.Free
+        return False
+
     def set_black_stone(self, x: int, y: int):
         if self.board_info[x][y] == OccupyStatus.Free:
             self.board_info[x][y] = OccupyStatus.Black
@@ -197,21 +222,20 @@ class CoreLogic:
             self.check_liberty(x, y)
 
     def set_stone(self, x: int, y: int):
-        if x != self.ko[0] or y != self.ko[1]:
-            self.ko[0], self.ko[1] = -1, -1
-            if self.black_turn:
-                self.set_black_stone(x, y)
-            else:
-                self.set_white_stone(x, y)
-            board_info = copy.deepcopy(self.board_info)
-            liberty_info = copy.deepcopy(self.liberty_info)
-            self.situation.append((board_info, liberty_info))
+        self.valid = self.check_valid(x, y)
+        if self.valid:
+            if x != self.ko[0] or y != self.ko[1]:
+                self.valid = True
+                self.ko[0], self.ko[1] = -1, -1
+                if self.black_turn:
+                    self.set_black_stone(x, y)
+                else:
+                    self.set_white_stone(x, y)
+                board_info = copy.deepcopy(self.board_info)
+                liberty_info = copy.deepcopy(self.liberty_info)
+                self.situation.append((board_info, liberty_info))
 
     def pass_this_move(self):
-        # if self.last_move_is_passed:
-        #     self.finish = True
-        #     return
-        self.last_move_is_passed = True
         self.black_turn = not self.black_turn
 
     def regret(self):

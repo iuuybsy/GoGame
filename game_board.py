@@ -54,7 +54,6 @@ class GameBoard:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     sys.exit()
-            # self.screen_block_check()
             x, y = pygame.mouse.get_pos()
             x_num = x // UNIT - 1
             y_num = y // UNIT - 1
@@ -68,21 +67,23 @@ class GameBoard:
                     left, _, right = pygame.mouse.get_pressed()
                     delta_time = (time.time() - self.last_move_time) * 1000.0
                     if delta_time > MIN_MOVE_TIME:
-                        if left:
-                            self.logic.set_stone(x_num, y_num)
-                            last_stone[0] = x_num
-                            last_stone[1] = y_num
-                            self.moves.append(copy.deepcopy(last_stone))
-                            self.last_move_time = time.time()
-                        elif right:
-                            self.logic.regret()
-                            last_stone[0] = -1
-                            last_stone[1] = -1
-                            if len(self.moves) > 1:
-                                last_stone[0] = self.moves[-2][0]
-                                last_stone[1] = self.moves[-2][1]
-                                self.moves.pop()
-                            self.last_move_time = time.time()
+                        if not self.logic.is_occupied_by_stone(x_num, y_num):
+                            if left:
+                                self.logic.set_stone(x_num, y_num)
+                                if self.logic.valid:
+                                    last_stone[0] = x_num
+                                    last_stone[1] = y_num
+                                    self.moves.append(copy.deepcopy(last_stone))
+                                    self.last_move_time = time.time()
+                            elif right:
+                                self.logic.regret()
+                                last_stone[0] = -1
+                                last_stone[1] = -1
+                                if len(self.moves) > 1:
+                                    last_stone[0] = self.moves[-2][0]
+                                    last_stone[1] = self.moves[-2][1]
+                                    self.moves.pop()
+                                self.last_move_time = time.time()
             for j in range(19):
                 for k in range(19):
                     if self.logic.board_info[j][k] == OccupyStatus.Black:
