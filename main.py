@@ -1,9 +1,4 @@
-from game_board import GameBoard
-# from core_logic import CoreLogic
-# import sgf_file_load
+from implement.visual import Visual
 
-game = GameBoard()
-game.self_play()
-
-
-
+visual = Visual()
+visual.display()
