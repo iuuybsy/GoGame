@@ -1,4 +1,5 @@
-from implement.visual import Visual
+from implement.go_game import GoGame
 
-visual = Visual()
-visual.display()
+
+game = GoGame()
+game.play()

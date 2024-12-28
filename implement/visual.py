@@ -36,16 +36,17 @@ STAR_POINT_LIST = [[4, 4], [4, 16], [16, 4], [16, 16],
 
 class Visual:
     def __init__(self):
-        pygame.init()
         self.screen = pygame.display.set_mode((BOARD_WIDTH, BOARD_HEIGHT))
 
     def display(self, board_info: list[list[OccupyStatus]], last_move: list[int]):
         self.draw_board()
         self.draw_stones(board_info)
         self.last_move_hint(board_info, last_move)
-        self.mouse_hint()
+        self.mouse_hint(board_info, last_move)
+        pygame.display.update()
 
     def draw_board(self):
+        self.screen.fill(WOOD)
         for i in range(LINE_NUM):
             pygame.draw.line(self.screen, BLACK,
                              (MID_UNIT + UNIT, MID_UNIT + (i + 1) * UNIT),
@@ -72,6 +73,8 @@ class Visual:
                     self.set_white_stone(i, j)
 
     def last_move_hint(self, board_info: list[list[OccupyStatus]], last_move: list[int]):
+        if last_move[0] == -1:
+            return
         if board_info[last_move[0]][last_move[1]] == OccupyStatus.Black:
             self.set_white_dot(last_move[0], last_move[1])
         elif board_info[last_move[0]][last_move[1]] == OccupyStatus.White:
@@ -86,16 +89,15 @@ class Visual:
         y_num = y // UNIT - 1
         if 0 <= x_num <= 18 and 0 <= y_num <= 18:
             if board_info[x_num][y_num] == OccupyStatus.Free:
-                if board_info[last_move[0]][last_move[1]] == OccupyStatus.Black:
+                if last_move[0] == -1:
+                    self.set_black_square(x_num, y_num)
+                elif board_info[last_move[0]][last_move[1]] == OccupyStatus.Black:
                     self.set_white_square(x_num, y_num)
                 elif board_info[last_move[0]][last_move[1]] == OccupyStatus.White:
                     self.set_black_square(x_num, y_num)
                 else:
                     # TODO: throw exception
                     pass
-        else:
-            # TODO: throw exception
-            pass
 
     def set_black_stone(self, x: int, y: int):
         pygame.draw.circle(self.screen, BURGUNDY,
