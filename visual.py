@@ -1,7 +1,6 @@
 import pygame
-import sys
 
-from implement.stone_enum import OccupyStatus
+from stone_enum import OccupyStatus
 
 
 UNIT: int = 41

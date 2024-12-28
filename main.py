@@ -1,4 +1,4 @@
-from implement.go_game import GoGame
+from go_game import GoGame
 
 
 game = GoGame()

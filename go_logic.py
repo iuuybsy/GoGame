@@ -1,6 +1,6 @@
 import copy
 
-from implement.stone_enum import OccupyStatus
+from stone_enum import OccupyStatus
 
 NUM: int = 19
 SEARCH_DIRECTION = [[-1, 0], [1, 0], [0, -1], [0, 1]]

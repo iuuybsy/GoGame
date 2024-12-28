@@ -2,8 +2,8 @@ import pygame
 import sys
 import time
 
-from implement.visual import Visual
-from implement.go_logic import GoLogic
+from visual import Visual
+from go_logic import GoLogic
 
 UNIT: int = 41
 DELTA_TIME = 0.5
