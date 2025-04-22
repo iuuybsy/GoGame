@@ -1,9 +1,7 @@
 import copy
 
 from stone_enum import OccupyStatus
-
-NUM: int = 19
-SEARCH_DIRECTION = [[-1, 0], [1, 0], [0, -1], [0, 1]]
+from common.const import NUM, SEARCH_DIRECTION
 
 
 class Stack:

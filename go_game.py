@@ -4,9 +4,7 @@ import time
 
 from visual import Visual
 from go_logic import GoLogic
-
-UNIT: int = 41
-DELTA_TIME = 0.5
+from common.const import UNIT, DELTA_TIME
 
 
 class GoGame:
