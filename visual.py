@@ -1,36 +1,12 @@
 import pygame
 
 from stone_enum import OccupyStatus
-
-
-UNIT: int = 41
-MID_UNIT = UNIT // 2 + 1
-
-SQUARE_WIDTH = int(UNIT * 0.4)
-if SQUARE_WIDTH % 2 == 0:
-    SQUARE_WIDTH += 1
-SQUARE_INDEX = int((UNIT - SQUARE_WIDTH) * 0.5) + 1
-
-BOARD_HEIGHT_UNIT_NUM: int = 21
-BOARD_WIDTH_UNIT_NUM: int = 21
-
-BOARD_WIDTH: int = BOARD_WIDTH_UNIT_NUM * UNIT
-BOARD_HEIGHT: int = BOARD_HEIGHT_UNIT_NUM * UNIT
-
-LINE_WIDTH: int = int(UNIT * 0.05)
-LINE_NUM = 19
-
-STONE_OUTER_RADIUS: int = MID_UNIT - 1
-STONE_INNER_RADIUS: int = int(STONE_OUTER_RADIUS * 0.8)
-
-BLACK = (0, 0, 0)
-WOOD = (222, 184, 135)
-BURGUNDY = (120, 0, 30)
-WHITE = (255, 251, 240)
-
-STAR_POINT_LIST = [[4, 4], [4, 16], [16, 4], [16, 16],
-                   [4, 10], [10, 4], [16, 10], [10, 16],
-                   [10, 10]]
+from common.const import BOARD_WIDTH, BOARD_HEIGHT
+from common.const import UNIT, MID_UNIT
+from common.const import LINE_NUM, LINE_WIDTH, STONE_INNER_RADIUS, STONE_OUTER_RADIUS
+from common.const import SQUARE_WIDTH, SQUARE_INDEX
+from common.const import STAR_POINT_LIST
+from common.color import WOOD, BLACK, BURGUNDY, WHITE
 
 
 class Visual:

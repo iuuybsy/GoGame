@@ -1,0 +1,28 @@
+NUM: int = 19
+SEARCH_DIRECTION = [[-1, 0], [1, 0], [0, -1], [0, 1]]
+
+UNIT: int = 41
+DELTA_TIME = 0.1
+
+MID_UNIT = UNIT // 2 + 1
+
+SQUARE_WIDTH = int(UNIT * 0.4)
+if SQUARE_WIDTH % 2 == 0:
+    SQUARE_WIDTH += 1
+SQUARE_INDEX = int((UNIT - SQUARE_WIDTH) * 0.5) + 1
+
+BOARD_HEIGHT_UNIT_NUM: int = 21
+BOARD_WIDTH_UNIT_NUM: int = 21
+
+BOARD_WIDTH: int = BOARD_WIDTH_UNIT_NUM * UNIT
+BOARD_HEIGHT: int = BOARD_HEIGHT_UNIT_NUM * UNIT
+
+LINE_WIDTH: int = int(UNIT * 0.05)
+LINE_NUM = 19
+
+STONE_OUTER_RADIUS: int = MID_UNIT - 1
+STONE_INNER_RADIUS: int = int(STONE_OUTER_RADIUS * 0.8)
+
+STAR_POINT_LIST = [[4, 4], [4, 16], [16, 4], [16, 16],
+                   [4, 10], [10, 4], [16, 10], [10, 16],
+                   [10, 10]]
