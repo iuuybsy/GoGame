@@ -7,13 +7,66 @@ from common.const import LINE_NUM, LINE_WIDTH, STONE_INNER_RADIUS, STONE_OUTER_R
 from common.const import SQUARE_WIDTH, SQUARE_INDEX
 from common.const import STAR_POINT_LIST
 from common.color import WOOD, BLACK, BURGUNDY, WHITE
+from common.color import MILD_BLACK, MILD_WHITE, MILD_BURGUNDY
+
+from sgf_process import sgf_read
 
 
 class Visual:
     def __init__(self):
         self.screen = pygame.display.set_mode((BOARD_WIDTH, BOARD_HEIGHT))
 
-    def display(self, board_info: list[list[OccupyStatus]], last_move: list[int]):
+    def opening_display(self, board_info: list[list[OccupyStatus]], last_move: list[int]):
+        self.screen.fill(WOOD)
+        for i in range(LINE_NUM):
+            pygame.draw.line(self.screen, MILD_BLACK,
+                             (MID_UNIT + UNIT, MID_UNIT + (i + 1) * UNIT),
+                             (MID_UNIT + 19 * UNIT, MID_UNIT + (i + 1) * UNIT),
+                             LINE_WIDTH)
+            pygame.draw.line(self.screen, MILD_BLACK,
+                             (MID_UNIT + (i + 1) * UNIT, MID_UNIT + UNIT),
+                             (MID_UNIT + (i + 1) * UNIT, MID_UNIT + 19 * UNIT),
+                             LINE_WIDTH)
+
+        for i in range(len(STAR_POINT_LIST)):
+            pygame.draw.circle(self.screen, MILD_BLACK,
+                               (STAR_POINT_LIST[i][0] * UNIT + MID_UNIT + 1,
+                                STAR_POINT_LIST[i][1] * UNIT + MID_UNIT + 1),
+                               4 * LINE_WIDTH)
+
+        for i in range(LINE_NUM):
+            for j in range(LINE_NUM):
+                if board_info[i][j] == OccupyStatus.Black:
+                    self.set_black_stone(i, j)
+                    pygame.draw.circle(self.screen, MILD_BURGUNDY,
+                                       ((i + 1) * UNIT + MID_UNIT + 1,
+                                        (j + 1) * UNIT + MID_UNIT + 1),
+                                       STONE_OUTER_RADIUS)
+                elif board_info[i][j] == OccupyStatus.White:
+                    pygame.draw.circle(self.screen, MILD_BURGUNDY,
+                                       ((i + 1) * UNIT + MID_UNIT + 1,
+                                        (j + 1) * UNIT + MID_UNIT + 1),
+                                       STONE_OUTER_RADIUS)
+                    pygame.draw.circle(self.screen, MILD_WHITE,
+                                       ((i + 1) * UNIT + MID_UNIT + 1,
+                                        (j + 1) * UNIT + MID_UNIT + 1),
+                                       STONE_INNER_RADIUS)
+
+        if last_move[0] == -1:
+            return
+        if board_info[last_move[0]][last_move[1]] == OccupyStatus.Black:
+            pygame.draw.circle(self.screen, MILD_WHITE,
+                               ((last_move[0] + 1) * UNIT + MID_UNIT + 1,
+                                (last_move[1] + 1) * UNIT + MID_UNIT + 1),
+                               STONE_INNER_RADIUS // 2)
+        elif board_info[last_move[0]][last_move[1]] == OccupyStatus.White:
+            pygame.draw.circle(self.screen, MILD_BLACK,
+                               ((last_move[0] + 1) * UNIT + MID_UNIT + 1,
+                                (last_move[1] + 1) * UNIT + MID_UNIT + 1),
+                               STONE_INNER_RADIUS // 2)
+        pygame.display.update()
+
+    def self_play_display(self, board_info: list[list[OccupyStatus]], last_move: list[int]):
         self.draw_board()
         self.draw_stones(board_info)
         self.last_move_hint(board_info, last_move)
