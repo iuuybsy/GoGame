@@ -2,5 +2,5 @@ from go_game import GoGame
 
 
 game = GoGame()
-game.opening()
+game.self_play()
 
