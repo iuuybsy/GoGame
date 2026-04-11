@@ -46,11 +46,13 @@ class Visual:
             self.draw_option_circle(OPENING_OPTION_RANDOM_POS[0], OPENING_OPTION_RANDOM_POS[1])
         self.opening_choose_color_icon()
 
-    def self_play_display(self, board_info: list[list[OccupyStatus]], last_move: list[int]):
+    def self_play_display(self, board_info: list[list[OccupyStatus]], last_move: list[int], point_to_reset: bool):
         self.draw_board()
         self.draw_stones(board_info)
         self.last_move_hint(board_info, last_move)
         self.mouse_hint(board_info, last_move)
+        reset_option_color = BURGUNDY if point_to_reset else MILD_BURGUNDY
+        self.draw_restart_stone_left_arrow(9, 20, reset_option_color)
         pygame.display.update()
 
     def draw_board(self, line_color=BLACK):
@@ -166,3 +168,33 @@ class Visual:
                            ((x + 1) * UNIT + MID_UNIT + 1,
                             (y + 1) * UNIT + MID_UNIT + 1),
                            STONE_INNER_RADIUS // 2)
+
+    def draw_restart_stone_left_arrow(self, x: int, y: int,
+                                      color=MILD_BURGUNDY):
+        cx = (x + 1) * UNIT + MID_UNIT + 1
+        cy = (y + 1) * UNIT + MID_UNIT + 1
+        r_inner = OPTION_INNER_RADIUS
+
+        pygame.draw.circle(self.screen, color, (cx, cy), OPTION_OUTER_RADIUS)
+        pygame.draw.circle(self.screen, WOOD, (cx, cy), OPTION_INNER_RADIUS)
+
+        arrow_width = r_inner * 0.7
+        arrow_thick = max(3, int(r_inner * 0.25))
+        head_len = r_inner * 0.45
+        head_width = r_inner * 0.55
+
+        shaft_left_x = cx - arrow_width / 2
+
+        shaft_rect = pygame.Rect(shaft_left_x, cy - arrow_thick / 2,
+                                 arrow_width + 10, arrow_thick)
+        pygame.draw.rect(self.screen, color, shaft_rect)
+
+        tip_x = shaft_left_x - 10
+        tip_y = cy
+        top_x = shaft_left_x + head_len
+        top_y = cy - head_width / 2
+        bottom_x = shaft_left_x + head_len
+        bottom_y = cy + head_width / 2
+
+        pygame.draw.polygon(self.screen, color,
+                            [(tip_x, tip_y), (top_x, top_y), (bottom_x, bottom_y)])
