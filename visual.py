@@ -20,7 +20,8 @@ class Visual:
         self.draw_board(MILD_BLACK)
         self.draw_stones(board_info, MILD_BURGUNDY, MILD_WHITE)
 
-        self.last_move_hint(board_info, last_move, MILD_WHITE, MILD_BLACK)
+        if last_move[0] >= 0 and last_move[1] >= 0:
+            self.last_move_hint(board_info, last_move, MILD_WHITE, MILD_BLACK)
         pygame.display.update()
 
     def self_play_display(self, board_info: list[list[OccupyStatus]], last_move: list[int]):

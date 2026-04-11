@@ -24,7 +24,7 @@ class GoGame:
         self.last_move_time = time.time()
 
     def opening(self):
-        moves = sgf_read("E:/PythonProject/Go/opening.sgf")
+        moves = sgf_read("opening.sgf")
         last_move_time = time.time()
         ind = 0
         while ind < len(moves):
@@ -37,6 +37,11 @@ class GoGame:
             if time.time() - last_move_time > 1:
                 ind += 1
                 last_move_time = time.time()
+        while True:
+            self.visual.opening_display(self.go_logic.board_info, [-1, -1])
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    sys.exit()
 
     def self_play(self) -> LogicFlow:
         while True:
