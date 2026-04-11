@@ -2,6 +2,7 @@ import pygame
 import sys
 import time
 import random
+import os
 
 from enum import Enum
 from visual import Visual
@@ -17,6 +18,14 @@ class LogicFlow(Enum):
     MoveToEnd = 4
 
 
+def resource_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except AttributeError:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
+
 class GoGame:
     def __init__(self):
         pygame.init()
@@ -25,11 +34,11 @@ class GoGame:
         self.visual = Visual()
         self.last_move_time = time.time()
         self.stone_sounds = [
-            pygame.mixer.Sound("sounds/stone1.wav"),
-            pygame.mixer.Sound("sounds/stone2.wav"),
-            pygame.mixer.Sound("sounds/stone3.wav"),
-            pygame.mixer.Sound("sounds/stone4.wav"),
-            pygame.mixer.Sound("sounds/stone5.wav")
+            pygame.mixer.Sound(resource_path("sounds/stone1.wav")),
+            pygame.mixer.Sound(resource_path("sounds/stone2.wav")),
+            pygame.mixer.Sound(resource_path("sounds/stone3.wav")),
+            pygame.mixer.Sound(resource_path("sounds/stone4.wav")),
+            pygame.mixer.Sound(resource_path("sounds/stone5.wav"))
         ]
         for sound in self.stone_sounds:
             sound.set_volume(1.0)
