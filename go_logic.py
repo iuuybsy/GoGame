@@ -85,9 +85,9 @@ class GoLogic:
             return True
         return False
 
-    def set_stone(self, x: int, y: int):
+    def set_stone(self, x: int, y: int) -> bool:
         if self.occupied_by_stone(x, y):
-            return
+            return False
 
         target_status = OccupyStatus.Black if self.is_black_turn else OccupyStatus.White
         hostile_status = OccupyStatus.White if self.is_black_turn else OccupyStatus.Black
@@ -105,16 +105,17 @@ class GoLogic:
         if local_liberty == 0:
             self.board_info = copy.deepcopy(self.board_record[-1])
             self.liberty = copy.deepcopy(self.liberty_record[-1])
-            return
+            return False
         if len(self.move_record) >= 2 and self.board_info == self.board_record[-2]:
             self.board_info = copy.deepcopy(self.board_record[-1])
             self.liberty = copy.deepcopy(self.liberty_record[-1])
-            return
+            return False
         self.is_black_turn = not self.is_black_turn
         self.last_move = [x, y]
         self.board_record.append(copy.deepcopy(self.board_info))
         self.liberty_record.append(copy.deepcopy(self.liberty))
         self.move_record.append([x, y])
+        return True
 
     def regret(self):
         if len(self.move_record) == 0:

@@ -1,6 +1,7 @@
 import pygame
 import sys
 import time
+import random
 
 from enum import Enum
 from visual import Visual
@@ -19,9 +20,19 @@ class LogicFlow(Enum):
 class GoGame:
     def __init__(self):
         pygame.init()
+        pygame.mixer.init()
         self.go_logic = GoLogic()
         self.visual = Visual()
         self.last_move_time = time.time()
+        self.stone_sounds = [
+            pygame.mixer.Sound("sounds/stone1.wav"),
+            pygame.mixer.Sound("sounds/stone2.wav"),
+            pygame.mixer.Sound("sounds/stone3.wav"),
+            pygame.mixer.Sound("sounds/stone4.wav"),
+            pygame.mixer.Sound("sounds/stone5.wav")
+        ]
+        for sound in self.stone_sounds:
+            sound.set_volume(1.0)
 
     def opening(self):
         moves = sgf_read("opening.sgf")
@@ -57,7 +68,8 @@ class GoGame:
                 left, _, right = pygame.mouse.get_pressed()
                 current_time = time.time()
                 if left and current_time - self.last_move_time > DELTA_TIME:
-                    self.go_logic.set_stone(x_num, y_num)
+                    if self.go_logic.set_stone(x_num, y_num):
+                        self.stone_sounds[random.randint(0, 4)].play()
                     self.last_move_time = time.time()
                 elif right and current_time - self.last_move_time > DELTA_TIME:
                     self.go_logic.regret()
