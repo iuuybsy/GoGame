@@ -29,6 +29,58 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 
 
+def gtp_to_coord(gtp_str: str, board_size: int = 19) -> list[int]:
+
+    gtp = gtp_str.strip().upper()
+    if gtp in ("PASS", "RESIGN"):
+        return [-1, -1]
+
+    if len(gtp) < 2 or not gtp[0].isalpha() or not gtp[1:].isdigit():
+        raise ValueError(f"Invalid GTP cord: '{gtp_str}'")
+
+    col_letter = gtp[0]
+    row_str = gtp[1:]
+
+    # 列字母转换（跳过 'I'）
+    if col_letter < 'A' or col_letter > 'T' or col_letter == 'I':
+        raise ValueError(f"Invalid letter: '{col_letter}'")
+    col = ord(col_letter) - ord('A')
+    if col_letter > 'I':
+        col -= 1
+
+    # 行号转换：GTP 行号 1 为棋盘底边，映射到我们的坐标系（行索引从 0 顶边开始）
+    gtp_row = int(row_str)
+    if not (1 <= gtp_row <= board_size):
+        raise ValueError(f"'{gtp_row}' out of range")
+    row = board_size - gtp_row   # 上下翻转
+
+    if not (0 <= col < board_size):
+        raise ValueError(f"cord '{gtp_str}' out of range")
+
+    return [col, row]
+
+
+def coord_to_gtp(coord: list[int], board_size: int = 19) -> str:
+    if not isinstance(coord, (list, tuple)) or len(coord) != 2:
+        raise ValueError("Invalid coordinate format")
+
+    col, row = coord
+    if row == -1 and col == -1:
+        return "PASS"
+
+    if not (0 <= row < board_size and 0 <= col < board_size):
+        raise ValueError(f"cord [{row}, {col}] out of range")
+
+    gtp_row = board_size - row
+
+    if col >= 8:
+        col_letter = chr(ord('A') + col + 1)
+    else:
+        col_letter = chr(ord('A') + col)
+
+    return f"{col_letter}{gtp_row}"
+
+
 class GoGame:
     def __init__(self):
         pygame.init()
@@ -158,6 +210,11 @@ class GoGame:
                 current_time = time.time()
                 if left and current_time - self.last_move_time > DELTA_TIME:
                     if self.go_logic.set_stone(x_num, y_num):
+                        # gtp_str = coord_to_gtp([x_num, y_num])
+                        # print(f"current gtp string: {gtp_str}")
+                        # print(f"current cord: ( {x_num}, {y_num})")
+                        # back_cord = gtp_to_coord(gtp_str)
+                        # print(f"back cord: ( {back_cord[0]}, {back_cord[1]})")
                         self.stone_sounds[random.randint(0, 4)].play()
                     self.last_move_time = time.time()
                 elif right and current_time - self.last_move_time > DELTA_TIME:
