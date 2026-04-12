@@ -94,9 +94,12 @@ class GoGame:
         ]
         for sound in self.stone_sounds:
             sound.set_volume(1.0)
-        self.process = subprocess.Popen([KATAGO_PATH, 'gtp',
-                            '-model', MODEL_PATH,
-                            '-config', CONFIG_PATH],
+        katago_path = resource_path(KATAGO_PATH)
+        model_path = resource_path(MODEL_PATH)
+        config_path = resource_path(CONFIG_PATH)
+        self.process = subprocess.Popen([katago_path, 'gtp',
+                            '-model', model_path,
+                            '-config', config_path],
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT, text=True, bufsize=1)
         self.go_logic = GoLogic()
