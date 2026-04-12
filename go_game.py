@@ -85,6 +85,7 @@ class GoGame:
     def __init__(self):
         pygame.init()
         pygame.mixer.init()
+
         self.stone_sounds = [
             pygame.mixer.Sound(resource_path("sounds/stone1.wav")),
             pygame.mixer.Sound(resource_path("sounds/stone2.wav")),
@@ -94,14 +95,19 @@ class GoGame:
         ]
         for sound in self.stone_sounds:
             sound.set_volume(1.0)
+
         katago_path = resource_path(KATAGO_PATH)
         model_path = resource_path(MODEL_PATH)
         config_path = resource_path(CONFIG_PATH)
+        creationflags = 0
+        if sys.platform == "win32":
+            creationflags = subprocess.CREATE_NO_WINDOW
         self.process = subprocess.Popen([katago_path, 'gtp',
                             '-model', model_path,
                             '-config', config_path],
                             stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                            stderr=subprocess.STDOUT, text=True, bufsize=1)
+                            stderr=subprocess.STDOUT, text=True, bufsize=1,
+                            creationflags=creationflags)
         self.go_logic = GoLogic()
         self.visual = Visual()
         self.last_move_time = time.time()
@@ -121,7 +127,8 @@ class GoGame:
         return point_to_black, point_to_white, point_to_random
 
     def opening(self) -> tuple[bool, bool]:
-        moves = sgf_read("opening.sgf")
+        sgf_path = resource_path("opening.sgf")
+        moves = sgf_read(sgf_path)
         last_move_time = time.time()
         ind = 0
         pygame.event.clear()
