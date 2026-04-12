@@ -120,7 +120,7 @@ class GoGame:
         point_to_random = x_num == OPENING_OPTION_RANDOM_POS[0] and y_num == OPENING_OPTION_RANDOM_POS[1]
         return point_to_black, point_to_white, point_to_random
 
-    def opening(self) -> tuple[bool, bool, bool]:
+    def opening(self) -> tuple[bool, bool]:
         moves = sgf_read("opening.sgf")
         last_move_time = time.time()
         ind = 0
@@ -148,7 +148,10 @@ class GoGame:
                 if time.time() - last_move_time > 1:
                     ind += 1
                     last_move_time = time.time()
-        return point_to_black, point_to_white, point_to_random
+        if point_to_random:
+            point_to_black = random.randint(0, 1) > 0
+            point_to_white = not point_to_black
+        return point_to_black, point_to_white
 
     def self_play(self):
         while True:
@@ -200,10 +203,8 @@ class GoGame:
             response.append(line)
         return response
 
-    def ai_play(self, take_black, take_white, take_random):
+    def ai_play(self, take_black, take_white):
         play_take_black = take_black and (not take_white)
-        if take_random:
-            play_take_black = random.randint(0, 1) > 0
         while True:
             point_to_reset = self.reset_judgement()
             mouse_clicked = False
@@ -219,7 +220,8 @@ class GoGame:
             if mouse_clicked:
                 break
 
-            self.visual.self_play_display(self.go_logic.board_info, self.go_logic.last_move, point_to_reset)
+            self.visual.self_play_display(self.go_logic.board_info, self.go_logic.last_move,
+                                          play_take_black, point_to_reset)
 
             if play_take_black and self.go_logic.is_black_turn:
                 x_num, y_num = self.get_mouse_pos_num()
@@ -264,23 +266,6 @@ class GoGame:
                             self.stone_sounds[random.randint(0, 4)].play()
                         self.last_move_time = time.time()
 
-            # x_num, y_num = self.get_mouse_pos_num()
-            # if 0 <= x_num <= 18 and 0 <= y_num <= 18:
-            #     left, _, right = pygame.mouse.get_pressed()
-            #     current_time = time.time()
-            #     if left and current_time - self.last_move_time > DELTA_TIME:
-            #         if self.go_logic.set_stone(x_num, y_num):
-            #             # gtp_str = coord_to_gtp([x_num, y_num])
-            #             # print(f"current gtp string: {gtp_str}")
-            #             # print(f"current cord: ( {x_num}, {y_num})")
-            #             # back_cord = gtp_to_coord(gtp_str)
-            #             # print(f"back cord: ( {back_cord[0]}, {back_cord[1]})")
-            #             self.stone_sounds[random.randint(0, 4)].play()
-            #         self.last_move_time = time.time()
-            #     elif right and current_time - self.last_move_time > DELTA_TIME:
-            #         self.go_logic.regret()
-            #         self.last_move_time = time.time()
-
     def idle(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -296,10 +281,10 @@ class GoGame:
             line = self.process.stdout.readline()
         self.send_command(f"komi 7.5")
         while True:
-            take_black, take_white, take_random = self.opening()
+            take_black, take_white = self.opening()
             self.go_logic.reset()
             self.send_command("clear_board")
 
-            self.ai_play(take_black, take_white, take_random)
+            self.ai_play(take_black, take_white)
             self.go_logic.reset()
 
