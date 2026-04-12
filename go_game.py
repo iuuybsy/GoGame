@@ -4,6 +4,7 @@ import time
 import random
 import os
 import math
+import subprocess
 
 from enum import Enum
 
@@ -14,6 +15,8 @@ from common.const import UNIT, DELTA_TIME
 from common.const import OPENING_OPTION_BLACK_POS, OPENING_OPTION_WHITE_POS, OPENING_OPTION_RANDOM_POS
 from common.const import RESET_POS_X_RANGE
 from common.const import OPTION_OUTER_RADIUS
+
+from common.path import KATAGO_PATH, CONFIG_PATH, MODEL_PATH
 
 from sgf_process import sgf_read
 
@@ -30,9 +33,6 @@ class GoGame:
     def __init__(self):
         pygame.init()
         pygame.mixer.init()
-        self.go_logic = GoLogic()
-        self.visual = Visual()
-        self.last_move_time = time.time()
         self.stone_sounds = [
             pygame.mixer.Sound(resource_path("sounds/stone1.wav")),
             pygame.mixer.Sound(resource_path("sounds/stone2.wav")),
@@ -42,6 +42,13 @@ class GoGame:
         ]
         for sound in self.stone_sounds:
             sound.set_volume(1.0)
+        self.process = subprocess.Popen([KATAGO_PATH, 'gtp',
+                            '-model', MODEL_PATH,
+                            '-config', CONFIG_PATH],
+                           stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+        self.go_logic = GoLogic()
+        self.visual = Visual()
+        self.last_move_time = time.time()
 
     @staticmethod
     def get_mouse_pos_num() -> tuple[int, int]:
@@ -67,6 +74,7 @@ class GoGame:
             mouse_clicked = False
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    self.katago_terminate()
                     sys.exit()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1 and (point_to_black or point_to_white or point_to_random):
@@ -91,6 +99,7 @@ class GoGame:
             self.visual.self_play_display(self.go_logic.board_info, self.go_logic.last_move)
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    self.katago_terminate()
                     sys.exit()
 
             x_num, y_num = self.get_mouse_pos_num()
@@ -119,6 +128,11 @@ class GoGame:
         radius_range = 1.0 * OPTION_OUTER_RADIUS
         return distance <= radius_range
 
+    def katago_terminate(self):
+        self.process.stdin.write('quit\n')
+        self.process.stdin.flush()
+        self.process.terminate()
+
     def ai_play(self, take_black, take_white, take_random):
         while True:
             point_to_reset = self.reset_judgement()
@@ -126,6 +140,7 @@ class GoGame:
 
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
+                    self.katago_terminate()
                     sys.exit()
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if event.button == 1 and point_to_reset:
@@ -149,7 +164,7 @@ class GoGame:
                     self.last_move_time = time.time()
 
     def play(self):
-        last_status_change_time = time.time()
+
         while True:
             take_black, take_white, take_random = self.opening()
             self.go_logic.reset()
