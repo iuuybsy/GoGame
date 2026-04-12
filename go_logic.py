@@ -30,6 +30,17 @@ class GoLogic:
         self.liberty_record: list[list[list[int]]] = []
         self.move_record: list[list[int]] = []
 
+    def reset(self):
+        for i in range(NUM):
+            for j in range(NUM):
+                self.board_info[i][j] = OccupyStatus.Free
+                self.liberty[i][j] = 0
+        self.is_black_turn = True
+        self.last_move = [-1, -1]
+        self.board_record.clear()
+        self.liberty_record.clear()
+        self.move_record.clear()
+
     def check_liberty(self, x: int, y: int) -> int:
         if not self.valid_cord(x, y):
             raise IndexError("Index out of range in GOLogic.check_liberty method")
