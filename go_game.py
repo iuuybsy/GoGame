@@ -45,7 +45,8 @@ class GoGame:
         self.process = subprocess.Popen([KATAGO_PATH, 'gtp',
                             '-model', MODEL_PATH,
                             '-config', CONFIG_PATH],
-                           stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True)
+                            stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT, text=True, bufsize=1)
         self.go_logic = GoLogic()
         self.visual = Visual()
         self.last_move_time = time.time()
@@ -163,8 +164,19 @@ class GoGame:
                     self.go_logic.regret()
                     self.last_move_time = time.time()
 
-    def play(self):
+    def idle(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.katago_terminate()
+                sys.exit()
+        self.visual.idle_plot()
 
+    def play(self):
+        ready_str = "GTP ready, beginning main protocol loop"
+        line = self.process.stdout.readline()
+        while not (ready_str in line):
+            self.idle()
+            line = self.process.stdout.readline()
         while True:
             take_black, take_white, take_random = self.opening()
             self.go_logic.reset()

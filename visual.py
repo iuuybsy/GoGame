@@ -55,6 +55,10 @@ class Visual:
         self.draw_restart_stone_left_arrow(9, 20, reset_option_color)
         pygame.display.update()
 
+    def idle_plot(self):
+        self.draw_board(MILD_BLACK)
+        pygame.display.update()
+
     def draw_board(self, line_color=BLACK):
         self.screen.fill(WOOD)
         for i in range(LINE_NUM):
