@@ -30,6 +30,17 @@ class GoLogic:
         self.liberty_record: list[list[list[int]]] = []
         self.move_record: list[list[int]] = []
 
+    def reset(self):
+        for i in range(NUM):
+            for j in range(NUM):
+                self.board_info[i][j] = OccupyStatus.Free
+                self.liberty[i][j] = 0
+        self.is_black_turn = True
+        self.last_move = [-1, -1]
+        self.board_record.clear()
+        self.liberty_record.clear()
+        self.move_record.clear()
+
     def check_liberty(self, x: int, y: int) -> int:
         if not self.valid_cord(x, y):
             raise IndexError("Index out of range in GOLogic.check_liberty method")
@@ -85,9 +96,9 @@ class GoLogic:
             return True
         return False
 
-    def set_stone(self, x: int, y: int):
+    def set_stone(self, x: int, y: int) -> bool:
         if self.occupied_by_stone(x, y):
-            return
+            return False
 
         target_status = OccupyStatus.Black if self.is_black_turn else OccupyStatus.White
         hostile_status = OccupyStatus.White if self.is_black_turn else OccupyStatus.Black
@@ -105,16 +116,17 @@ class GoLogic:
         if local_liberty == 0:
             self.board_info = copy.deepcopy(self.board_record[-1])
             self.liberty = copy.deepcopy(self.liberty_record[-1])
-            return
+            return False
         if len(self.move_record) >= 2 and self.board_info == self.board_record[-2]:
             self.board_info = copy.deepcopy(self.board_record[-1])
             self.liberty = copy.deepcopy(self.liberty_record[-1])
-            return
+            return False
         self.is_black_turn = not self.is_black_turn
         self.last_move = [x, y]
         self.board_record.append(copy.deepcopy(self.board_info))
         self.liberty_record.append(copy.deepcopy(self.liberty))
         self.move_record.append([x, y])
+        return True
 
     def regret(self):
         if len(self.move_record) == 0:
